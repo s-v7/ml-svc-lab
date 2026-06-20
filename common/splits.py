@@ -34,5 +34,5 @@ def random_split(n: int, val_frac: float = 0.15, test_frac: float = 0.15, seed: 
     n_val = int(round(n * val_frac))
     n_train = n - n_val - n_test
     
-    return (idx[: n - n_val - n_test], idx[n - n_val - n_test: n - n_test], idx[n - n_test:])
+    return idx[:n_train], idx[n_train:n_train + n_val], idx[n_train + n_val:]
 
