@@ -1,4 +1,8 @@
 
+# Environment secrets
+.env
+.env.*
+
 # liberar plots do estudo (sobrescreve o *.png ignorado)
 !experiments/weather/plots/
 !experiments/weather/plots/*.png
@@ -12,3 +16,6 @@ __pycache__/
 experiments/code_review_agent/output/*.md
 !experiments/code_review_agent/output/.gitkeep
 
+
+# Weather generated/local data
+experiments/weather/data/*.csv

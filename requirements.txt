@@ -19,5 +19,9 @@ ruff
 # Modelos de sequência 
 tensorflow-cpu
 
+# Integração com LLMs (opcional --- instale só o que usar)
+anthropic
+openai
+
 # Scikit-Learn
 # scikit-learn==1.3.2 (contendo MLPClassifier)
