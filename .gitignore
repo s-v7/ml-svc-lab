@@ -1,0 +1,9 @@
+
+# liberar plots do estudo (sobrescreve o *.png ignorado)
+!experiments/weather/plots/
+!experiments/weather/plots/*.png
+
+.venv/
+.on_cache.sqlite
+.om_cache*
+__pycache__/
