@@ -1,60 +1,74 @@
-# Weather_forecast
+# ml-svc-lab
 
-### Documentation 
+Laboratorio pessoal de estudos de **Machine Learning** — um guarda-chuva para
+experimentar tecnicas em varios dominios. Cada experimento e autocontido e
+compartilha um nucleo de utilitarios transversais. O primeiro experimento e
+previsao do tempo (series temporais); outros dominios entram como novos `experiments/`.
 
-Description
-This script performs weather forecasts based on user-supplied weather information for a city. 
-Additionally, it also allows you to obtain city zip code information and display weather data in a bar graph. 
-And uses Scikit-Learn, for machine learning based on meteorological data and data storing in csv file
+## Estrutura
 
-## Dependencies
-
-Make sure the following libraries are installed before running the script
-`requests`
-`Flask`
-`pandas`
-`scikit-learn`( `MLPClassifier`)
-`matplotlib`
-
-### You can install them using the command:
-```bash
-pip install requests Flask pandas scikit-learn matplotlib
 ```
-or 
-
-```bash
-pip install -r requirements.txt
+ml-svc-lab/
+├── common/                 # utilitarios TRANSVERSAIS (qualquer experimento)
+│   ├── data.py             # I/O (CSV/Parquet)
+│   ├── metrics.py          # regressao (MAE/RMSE) + classificacao (acc/F1/AUC)
+│   ├── splits.py           # split TEMPORAL (sem shuffle) e split aleatorio
+│   └── plots.py            # previsto×real, residuos, matriz de confusao
+├── experiments/
+│   └── weather/            # 1o experimento — clima (series temporais)
+│       ├── ingest_openmeteo.py  # baixa historico (Open-Meteo, SEM chave)
+│       ├── features.py          # features + 2 alvos (temp e chuva)
+│       ├── windowing.py         # janelas deslizantes (-> sklearn e Keras)
+│       └── baseline.py          # persistencia / naive sazonal / climatologia
+├── tests/                  # pytest do common
+├── Makefile · requirements.txt · ruff.toml · .github/workflows/ci.yml
 ```
 
-## Functionalities
+## Experimento weather — alvos
 
-Function `new_weather_forecast(city)`
-This function takes the name of a city as a parameter and performs the following actions:
+A partir da serie diaria, prevemos o **dia seguinte**:
+- **Temperatura media** — regressao (metrica: MAE/RMSE)
+- **Choveu? (>1 mm)** — classificacao (metrica: F1/AUC; acuracia engana com classe desbalanceada)
 
-- **Obtains city weather data using the HGBrasil API.**
-- **Displays information about temperature, date, time, description, city and wind speed.**
-- **Saves the data to a CSV file called `climate_weather.csv.`**
-- **Reads the CSV file, selects relevant columns, and splits the data into training and testing sets.**
-- **Train a Neural Network model using `MLPClassifier` of scikit-learn.**
-- **Makes predictions on the test set and displays the predicted weather condition along with the probability of rain.**
-- **Identifies days with a probability of rain above 50%.**
-- **Creates a bar chart showing the amount of rain, percentage of clouds, and probability of rain for each day.**
+## Como rodar
 
-## Function `get_information_cep(zip_code)`
+```bash
+make setup            # instala dependencias
+make ingest           # baixa o historico de Teresina via Open-Meteo (sem chave)
+make baseline         # roda os baselines (a regua dos modelos)
+make test             # pytest
+make lint             # ruff
+```
 
-This function receives a CEP as a parameter and performs the following actions:
+## Baselines (a regua que os modelos de ML precisam bater)
 
-- **Gets information about the CEP using the ViaCEP API.**
+Todo modelo so "vale" se superar o baseline ingenuo. Em validacao com serie
+sintetica, a persistencia ("amanha = hoje") ja entrega temperatura com erro
+baixo, e a classificacao de chuva mostra a armadilha classica: prever "nunca
+chove" tem acuracia alta mas F1 = 0. Por isso medimos F1/AUC, nao acuracia.
 
-- **Displays the zip code, street, complement, neighborhood, city and UF**
+## Metodologia (e honestidade)
 
-### Comments
+Este e um **estudo de metodo**, nao um previsor que compete com servicos oficiais
+(INMET/NWP usam campos espaciais, fisica e satelites; um modelo de estacao unica
+nao os supera). O valor esta no rigor: baselines, **split temporal sem vazamento**,
+backtest walk-forward, e comparacao justa. A mesma disciplina se aplicara aos
+proximos dominios (ex.: financeiro, onde bater o "random walk" e o desafio real).
 
-- **Make sure to replace 'YOUR KEY' in the HGBrasil API URL with your actual API key.**
+## Roadmap
 
-- **The `get_information_cep(zip_code)` function is called automatically after obtaining the CEP information. 
-If you don't want this functionality, comment out or remove the new_prevision(city) function call `new_weather_forecast(city)`**
+- **Fase 0** — pipeline de dados + `common/` + baselines. (entregue)
+- **Fase 1** — modelos sklearn (linear, MLP) vs baselines.
+- **Fase 2** — TensorFlow/Keras: janelas `tf.data`, MLP, 1D-CNN, LSTM/GRU.
+- **Fase 3** — avaliacao temporal + backtest walk-forward + plots.
+- **Futuro** — novos `experiments/` (outros dominios e tecnicas).
 
-![Data](data_meteorological.png)
+## Dados
 
-[Silas Vasconcelos Cruz/Author] 
+Open-Meteo Historical Weather API (ERA5, desde 1940, sem chave). Migracao futura
+para INMET BDMEP (estacoes brasileiras reais). Os CSVs nao sao versionados —
+gere com `make ingest`.
+
+## License
+
+MIT — Silas Vasconcelos Cruz ([s-v7](https://github.com/s-v7))
