@@ -7,3 +7,8 @@
 .on_cache.sqlite
 .om_cache*
 __pycache__/
+
+# Code Review Agent outputs
+experiments/code_review_agent/output/*.md
+!experiments/code_review_agent/output/.gitkeep
+
