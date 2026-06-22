@@ -88,17 +88,17 @@ def main() -> None:
     parser.add_argument("--output-dir", default="experiments/code_review_agent/output", help="Diretório de saída dos relatórios")
     parser.add_argument("--max-chars", type=int, default=12000, help="Máximo de caracteres enviados ao LLM")
 
-    args_nvidia = parser.parse_args()
+    args = parser.parse_args()
 
     output_path = review_file(
-        provider=args_nvidia.provider,
-        file_path=Path(args_nvidia.file),
-        output_dir=Path(args_nvidia.output_dir),
-        max_chars=args_nvidia.max_chars
+        provider=args.provider,
+        file_path=Path(args.file),
+        output_dir=Path(args.output_dir),
+        max_chars=args.max_chars
     )
     print("== Code Review Agent ==")
-    print(f"Arquivo: {args_nvidia.file} ")
-    print(f"Provider: {args_nvidia.provider} ")
+    print(f"Arquivo: {args.file} ")
+    print(f"Provider: {args.provider} ")
     print(f"Relatório salvo em: {output_path} ")
 
 if __name__ == "__main__":

@@ -15,14 +15,13 @@ Sua tarefa é revisar código com foco em:
 
 Responda sempre em Markdown.
 Seja direto, técnico e prático.
-Não invente problemas: se algo esticer correto, diga que está correto.
+Não invente problemas: se algo estiver correto, diga que está correto.
 """
 
 def build_file_review_prompt(file_path: str, code: str) -> str:
-    return f"""
-# Code Review Agent
+    return f"""# Code Review Agent
 
-Revise o arquvivo abaixo.
+Revise o arquivo abaixo.
 
 ## Arquivo
 
@@ -32,37 +31,14 @@ Revise o arquvivo abaixo.
 
 ```text
 {code}
+```
 
-Formato esperado da resposta
+## Formato esperado da resposta
 
-Relatório de Revisão
-Resumo
-
-Explique em poucas linhas o estado geral do arquivo.
-
-Pontos positivos
-
-Liste o que está bom.
-
-Problemas encontrados
-
-Liste problemas reais ou prováveis.
-
-Riscos
-
-Aponte riscos de manutenção, segurança, performance ou comportamento.
-
-Sugestões objetivas
-
-Dê ações práticas para melhorar o código.
-
-Veredito
-
-Use uma das opções:
-
-aprovado
-aprovado com ajustes
-
-precisa correção
-
+**Resumo** — estado geral do arquivo em poucas linhas.
+**Pontos positivos** — o que está bom.
+**Problemas encontrados** — problemas reais ou prováveis (não invente).
+**Riscos** — manutenção, segurança, performance ou comportamento.
+**Sugestões objetivas** — ações práticas para melhorar.
+**Veredito** — use exatamente uma: `aprovado`, `aprovado com ajustes`, `precisa correção`.
 """

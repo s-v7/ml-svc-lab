@@ -19,3 +19,4 @@ experiments/code_review_agent/output/*.md
 
 # Weather generated/local data
 experiments/weather/data/*.csv
+experiments/code_review_agent/output/
