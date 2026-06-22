@@ -6,3 +6,5 @@ extend-exclude = ["legacy"]
 "experiments/weather/ingest_openmeteo.py" = ["E402"]
 "experiments/weather/train_sklearn.py" = ["E402"]
 "experiments/weather/llm_forecaster.py" = ["E402"]
+"experiments/weather/train_keras.py" = ["E402"]
+
