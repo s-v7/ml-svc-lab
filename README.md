@@ -1,75 +1,207 @@
 # ml-svc-lab
 
-Laboratório pessoal de estudos de **Machine Learning** — um guarda-chuva para
-experimentar técnicas em vários domínios. Cada experimento é autocontido e
-compartilha um núcleo de utilitários transversais. O primeiro experimento é
-previsão do tempo (séries temporais); outros domínios entram como novos `experiments/`.
+Laboratório pessoal de **Machine Learning, LLMs, busca vetorial, RAG, agentes de revisão de código e avaliação técnica**.
 
-## Estrutura
+O projeto começou como um experimento de previsão climática com séries temporais, baselines e modelos clássicos de ML. Agora evolui para uma vitrine de IA aplicada a cenários reais de engenharia de software, documentação, código legado, avaliação com métricas e integração corporativa com ecossistemas Python, Java e NodeJs.
+## Objetivo
 
-```
+Demonstrar, de forma prática e versionada, como combinar:
+
+* Machine Learning clássico
+* LLMs via OpenAI, NVIDIA NIM e Anthropic
+* Busca vetorial e embeddings
+* RAG com reranking
+* Agentes de revisão de código
+* Avaliação com métricas e baselines
+* Document Intelligence
+* LGPD / PII detection
+* Integração futura com sistemas corporativos Javax/Jakarta EE/Spring
+
+A premissa do laboratório é simples:
+
+> LLM não deve ser tratado como mágica. Cada módulo precisa ter entrada clara, saída verificável, baseline, avaliação e modo offline para testes.
+
+---
+
+## Módulos
+
+```text
 ml-svc-lab/
-├── common/                 # utilitários TRANSVERSAIS (qualquer experimento)
-│   ├── data.py             # I/O (CSV/Parquet)
-│   ├── metrics.py          # regressão (MAE/RMSE) + classificação (acc/F1/AUC)
-│   ├── splits.py           # split TEMPORAL (sem shuffle) e split aleatório
-│   └── plots.py            # previsto×real, resíduos, matriz de confusão
+├── common/                     # utilitários transversais
+│   ├── data.py                 # I/O de dados
+│   ├── metrics.py              # métricas de regressão/classificação
+│   ├── splits.py               # splits temporais e aleatórios
+│   └── plots.py                # gráficos e diagnóstico visual
+├── integration/                # clients e integração com LLMs
+│   ├── clients.py              # interface única: openai, nvidia, anthropic, echo
+│   ├── narrator.py             # LLM como narrador de resultados
+│   └── README.md
 ├── experiments/
-│   └── weather/            # 1º experimento — clima (séries temporais)
-│       ├── ingest_openmeteo.py  # baixa histórico (Open-Meteo, SEM chave)
-│       ├── features.py          # features + 2 alvos (temp e chuva)
-│       ├── windowing.py         # janelas deslizantes (-> sklearn e Keras)
-│       ├── baseline.py          # persistência / naive sazonal / climatologia
-│       └── train_sklearn.py     # modelos sklearn vs baselines + plots
-├── tests/                  # pytest do common
-├── Makefile · requirements.txt · ruff.toml · .github/workflows/ci.yml
+│   ├── weather/                # baseline climático: ML clássico vs LLM
+│   └── code_review_agent/      # agente de revisão de código com LLM
+├── docs/
+│   ├── material-ml-svc-lab.md  # roadmap geral da vitrine
+│   └── issues/                 # issues locais por módulo
+├── tests/
+├── Makefile
+├── requirements.txt
+└── ruff.toml
 ```
 
-## Experimento weather — alvos
+---
 
-A partir da série diária, prevemos o **dia seguinte**:
-- **Temperatura média** — regressão (métrica: MAE/RMSE)
-- **Choveu? (>1 mm)** — classificação (métrica: F1/AUC; acurácia engana com classe desbalanceada)
+## Roadmap
 
-## Como rodar
+| Issue | Módulo                |      Status      |
+| ----: | --------------------- | :--------------: |
+|   001 | Vector RAG            |     planejado    |
+|   002 | Reranking             |     planejado    |
+|   003 | Code RAG              |     planejado    |
+|   004 | Document Intelligence |     planejado    |
+|   005 | Code Review Agent     | em implementação |
+|   006 | LGPD / PII Detection  |     planejado    |
+|   007 | Weather Baseline      |     iniciado     |
+
+---
+
+## Code Review Agent
+
+O módulo `experiments/code_review_agent/` implementa um agente local de revisão de código usando LLM.
+
+Ele suporta:
+
+* revisão de arquivo local
+* providers `echo`, `openai`, `nvidia` e `anthropic`
+* geração de relatório Markdown
+* modo offline para smoke test
+* ajuste de `max_tokens` por provider
+* base para evolução futura com revisão de diff/PR
+
+### Rodar revisão offline
 
 ```bash
-make setup            # instala dependências
-make ingest           # baixa o histórico de Teresina via Open-Meteo (sem chave)
-make baseline         # roda os baselines (a régua dos modelos)
-make test             # pytest
-make lint             # ruff
+PYTHONPATH=. python3 -m experiments.code_review_agent.review_file \
+  --provider echo \
+  --file integration/clients.py
+```
 
-# Fase 1 — modelos sklearn vs baselines (gera plots e tabela):
+### Rodar revisão com OpenAI
+
+```bash
+PYTHONPATH=. python3 -m experiments.code_review_agent.review_file \
+  --provider openai \
+  --file integration/clients.py
+```
+
+### Rodar revisão com NVIDIA NIM
+
+```bash
+PYTHONPATH=. python3 -m experiments.code_review_agent.review_file \
+  --provider nvidia \
+  --file integration/clients.py
+```
+
+Os relatórios são salvos em:
+
+```text
+experiments/code_review_agent/output/
+```
+
+Os arquivos `.md` gerados nessa pasta são artefatos locais e não devem ser versionados.
+
+---
+
+## Integração com LLMs
+
+A camada `integration/clients.py` fornece uma interface única:
+
+```python
+client.complete(prompt, system="", max_tokens=None) -> str
+```
+
+Providers disponíveis:
+
+| Provider    | SDK         | Variável de ambiente | Uso               |
+| ----------- | ----------- | -------------------- | ----------------- |
+| `echo`      | nenhum      | nenhuma              | testes offline    |
+| `openai`    | `openai`    | `OPENAI_API_KEY`     | geração e revisão |
+| `nvidia`    | `openai`    | `NVIDIA_API_KEY`     | NVIDIA NIM        |
+| `anthropic` | `anthropic` | `ANTHROPIC_API_KEY`  | Claude            |
+
+Instalação dos SDKs:
+
+```bash
+python3 -m pip install openai anthropic
+```
+
+---
+
+## Weather Forecast Baseline
+
+O experimento `experiments/weather/` mantém o estudo original de previsão do tempo.
+
+Ele compara:
+
+* persistência
+* modelos sklearn
+* LLM como previsor
+* métricas como MAE, RMSE, F1 e AUC
+* split temporal sem vazamento
+
+### Rodar baseline sklearn
+
+```bash
 PYTHONPATH=. python3 -m experiments.weather.train_sklearn
 ```
 
-## Baselines (a régua que os modelos de ML precisam bater)
+### Rodar LLM forecaster offline
 
-Todo modelo só "vale" se superar o baseline ingênuo. No dado real de Teresina, a
-persistência ("amanhã = hoje") entrega temperatura com erro baixíssimo (MAE ≈
-0.64 °C), e a classificação de chuva mostra a armadilha clássica: prever "nunca
-chove" tem acurácia alta mas F1 = 0. Por isso medimos F1/AUC, não acurácia.
+```bash
+PYTHONPATH=. python3 -m experiments.weather.llm_forecaster \
+  --provider echo \
+  --n 30
+```
 
-## Resultados — Fase 1 (dado real de Teresina)
+### Rodar LLM forecaster com provider real
 
-Modelos clássicos (sklearn) vs os baselines, no conjunto de teste temporal.
-Régua: temperatura **MAE 0.637** · chuva **F1 0.759** (persistência).
+```bash
+PYTHONPATH=. python3 -m experiments.weather.llm_forecaster \
+  --provider nvidia \
+  --n 3
+```
 
-| Alvo | Modelo | Métrica | Bateu baseline? |
-|------|--------|---------|:---:|
-| Temperatura | persistência (baseline) | MAE=0.637 
-| Temperatura | LinearRegression | MAE=0.615  
-| Temperatura | Ridge(α=1) | MAE=0.615  
-| Temperatura | MLPRegressor | MAE=0.638  
-| Chuva | persistência (baseline) | F1=0.759  
-| Chuva | LogisticRegression | F1=0.750 (AUC=0.900) 
-| Chuva | MLPClassifier | F1=0.759 (AUC=0.895) 
+Observação: LLMs podem ser lentos e instáveis em previsão numérica. O objetivo aqui é medir e comparar, não assumir que o LLM sempre vence a baseline.
 
-**Leitura:** na temperatura, a regressão linear supera a persistência por pouco
-(0.615 vs 0.637) e o MLP **piora** — num sinal quase-determinístico, mais
-complexidade não ajuda. Na chuva, a Logística não bate o F1 mas tem **AUC 0.900**
-(ranqueia bem o risco; falta calibrar o limiar de decisão — próxima melhoria).
+---
+
+## Baselines: a régua que os modelos precisam bater
+
+Todo modelo só vale se superar um baseline simples. No dado real de Teresina, a persistência — “amanhã = hoje” — entrega temperatura com erro baixo. Na classificação de chuva, também aparece uma armadilha clássica: prever “nunca chove” pode ter acurácia alta, mas F1 ruim. Por isso o projeto mede F1/AUC, não apenas acurácia.
+
+---
+
+## Resultados — Fase 1: dado real de Teresina
+
+Modelos clássicos com sklearn comparados aos baselines no conjunto de teste temporal.
+
+Régua inicial:
+
+* Temperatura: **MAE 0.637** com persistência
+* Chuva: **F1 0.759** com persistência
+
+| Alvo        | Modelo             | Métrica              | Bateu baseline? |
+| ----------- | ------------------ | -------------------- | :-------------: |
+| Temperatura | persistência       | MAE=0.637            |     baseline    |
+| Temperatura | LinearRegression   | MAE=0.615            |       sim       |
+| Temperatura | Ridge(α=1)         | MAE=0.615            |       sim       |
+| Temperatura | MLPRegressor       | MAE=0.638            |       não       |
+| Chuva       | persistência       | F1=0.759             |     baseline    |
+| Chuva       | LogisticRegression | F1=0.750 / AUC=0.900 |    não no F1    |
+| Chuva       | MLPClassifier      | F1=0.759 / AUC=0.895 |     empatou     |
+
+Leitura técnica:
+
+> Na temperatura, a regressão linear supera a persistência por pouco, enquanto o MLP piora. Em sinal quase determinístico, mais complexidade não necessariamente ajuda. Na chuva, a regressão logística não bate o F1, mas apresenta AUC alto, indicando que ranqueia bem o risco; falta calibrar melhor o limiar de decisão.
 
 <div align="center">
 
@@ -81,19 +213,63 @@ complexidade não ajuda. Na chuva, a Logística não bate o F1 mas tem **AUC 0.9
 
 </div>
 
-## Metodologia (e honestidade)
+---
 
-Este é um **estudo de método**, não um previsor que compete com serviços oficiais
-(INMET/NWP usam campos espaciais, física e satélites; um modelo de estação única
-não os supera). O valor está no rigor: baselines, **split temporal sem vazamento**,
-e comparação justa. A mesma disciplina se aplicará aos próximos domínios.
+## Resultados iniciais com LLM forecaster
+
+Resultados observados nos testes locais:
+
+| Provider |  n | Baseline MAE | LLM MAE | Resultado            |
+| -------- | -: | -----------: | ------: | -------------------- |
+| echo     | 30 |        0.309 |   0.309 | igual à persistência |
+| openai   | 30 |        0.309 |   0.417 | não bateu            |
+| nvidia   |  1 |        0.167 |   0.331 | não bateu            |
+| nvidia   |  3 |        0.275 |   0.233 | bateu                |
+| nvidia   |  5 |        0.228 |   0.235 | não bateu            |
+
+Leitura técnica:
+
+> A persistência é uma baseline forte para séries climáticas. LLM puro não é garantia de melhoria numérica, mas pode ser útil como camada explicativa, avaliadora ou integradora.
+
+---
+
+## Metodologia e honestidade
+
+Este é um estudo de método, não um previsor que compete com serviços oficiais. INMET, NWP e serviços meteorológicos usam campos espaciais, física, satélites e redes de observação. Um modelo simples de estação única não substitui isso.
+
+O valor do projeto está no rigor:
+
+1. Baseline antes de modelo complexo.
+2. Split temporal quando o dado envolve tempo.
+3. Modo offline sempre disponível.
+4. LLM com saída verificável.
+5. Relatório técnico em Markdown.
+6. Separação entre cálculo, narração e avaliação.
+7. Integração incremental com provedores reais.
+8. Commits pequenos no padrão SV7 1:1.
+
+---
 
 ## Dados
 
-Open-Meteo Historical Weather API (ERA5, desde 1940, sem chave). Migração futura
-para INMET BDMEP (estações brasileiras reais). Os CSVs não são versionados —
-gere com `make ingest`.
+O experimento climático usa dados da Open-Meteo Historical Weather API, sem chave.
 
-## License
+Migração futura planejada:
+
+* INMET BDMEP
+* estações brasileiras reais
+* comparação por cidade/estado
+* enriquecimento com variáveis meteorológicas adicionais
+
+Os CSVs de dados brutos não precisam ser versionados. Gere com:
+
+```bash
+make ingest
+```
+
+---
+
+## Licença
 
 MIT — Silas Vasconcelos Cruz ([s-v7](https://github.com/s-v7))
+

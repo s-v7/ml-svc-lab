@@ -1,4 +1,8 @@
 
+# Environment secrets
+.env
+.env.*
+
 # liberar plots do estudo (sobrescreve o *.png ignorado)
 !experiments/weather/plots/
 !experiments/weather/plots/*.png
@@ -7,3 +11,17 @@
 .on_cache.sqlite
 .om_cache*
 __pycache__/
+
+# Code Review Agent outputs
+experiments/code_review_agent/output/*.md
+!experiments/code_review_agent/output/.gitkeep
+
+
+# Weather generated/local data
+experiments/weather/data/*.csv
+experiments/code_review_agent/output/
+
+# Documentação privada
+docs/material-ml-svc-lab.md
+docs/material-ml-svc-lab.md
+acom.txt
