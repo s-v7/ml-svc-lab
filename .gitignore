@@ -20,3 +20,8 @@ experiments/code_review_agent/output/*.md
 # Weather generated/local data
 experiments/weather/data/*.csv
 experiments/code_review_agent/output/
+
+# Documentação privada
+docs/material-ml-svc-lab.md
+docs/material-ml-svc-lab.md
+acom.txt
